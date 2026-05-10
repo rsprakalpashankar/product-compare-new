@@ -53,7 +53,7 @@ User Input (Product A, Product B)
             ▼
 ┌──────────────────────────┐
 │  Agent 1: Data Collector │  ← Uses fetch_product_data tool
-│  - Fetches specs         │    (DuckDuckGo API + Claude knowledge)
+│  - Fetches specs         │    (SerpAPI + LLaMA 3 knowledge)
 │  - Price range           │
 │  - User ratings          │
 │  - Target audience       │
@@ -88,7 +88,7 @@ User Input (Product A, Product B)
 | Agent Framework | LangChain 0.2.x |
 | LLM Provider | Groq (LLaMA 3 70B) |
 | Frontend | Streamlit 1.35 |
-| Web Data Tool | DuckDuckGo Instant API + LLM knowledge |
+| Web Data Tool | SerpAPI + LLM knowledge |
 | HTTP Client | Requests |
 | Environment | python-dotenv |
 
@@ -166,10 +166,10 @@ Then open your browser at: `http://localhost:8501`
 ## 9. How It Works (Code-Level Explanation)
 
 ### `tools/product_fetcher.py`
-Defines a LangChain `@tool` called `fetch_product_data`. It calls the DuckDuckGo Instant Answer API to retrieve a web snippet about the product, and returns it as a formatted string. This is the "eyes" of Agent 1.
+Defines a LangChain `@tool` called `fetch_product_data`. It calls the SerpAPI (Google Search) to retrieve web snippets about the product, and returns them as a formatted string. This is the "eyes" of Agent 1.
 
 ### `agents/data_collector.py`
-Builds a **ReAct agent** using `create_react_agent`. The agent receives a product name, uses the `fetch_product_data` tool to gather web data, and then uses Claude to reason over that data and return a clean structured profile (price, specs, ratings, etc.).
+Builds a **ReAct agent** using `create_react_agent`. The agent receives a product name, uses the `fetch_product_data` tool to gather web data, and then uses LLaMA 3 (via Groq) to reason over that data and return a clean structured profile (price, specs, ratings, etc.).
 
 ### `agents/decision_maker.py`
 A **reasoning-only agent** (no tool needed). It receives the two structured profiles from Agent 1, and uses a carefully crafted system prompt to produce a formatted comparison table, pros/cons lists, and a clear recommendation.

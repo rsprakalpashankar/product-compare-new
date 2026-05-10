@@ -19,6 +19,11 @@ from utils.helpers import parse_vs_input, sanitize_product_name
 from dotenv import load_dotenv
 load_dotenv()
 
+# Helper for sidebar examples
+def set_example(p1, p2):
+    st.session_state.pa = p1
+    st.session_state.pb = p2
+
 
 # ─────────────────────────────────────────────
 #  Page Config
@@ -184,19 +189,25 @@ st.markdown("""
 #  Sidebar
 # ─────────────────────────────────────────────
 with st.sidebar:
-
-    api_key = os.getenv("GROQ_API_KEY")
-
-    st.markdown("### 🤖 Agent Pipeline")
-    st.markdown("""
-    <div class="step-box">🔵 <b>Agent 1</b> — Data Collector<br>
-    Fetches specs, price & ratings</div>
-    <div class="step-box">🟢 <b>Agent 2</b> — Decision Maker<br>
-    Compares & recommends</div>
-    """, unsafe_allow_html=True)
+    st.markdown("### 🔑 API Configuration")
+    groq_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
+    serp_key = st.text_input("SerpAPI Key", type="password", placeholder="...")
+    
+    if not groq_key:
+        groq_key = os.getenv("GROQ_API_KEY")
+    if not serp_key:
+        serp_key = os.getenv("SERPAPI_KEY")
 
     st.markdown("---")
-    
+    st.markdown("### 💡 Quick Examples")
+    if st.button("📱 iPhone 15 vs S24 Ultra"):
+        set_example("iPhone 15 Pro", "Samsung Galaxy S24 Ultra")
+    if st.button("💻 MacBook Air vs XPS 13"):
+        set_example("MacBook Air M3", "Dell XPS 13")
+    if st.button("🎧 Sony XM5 vs Bose QC"):
+        set_example("Sony WH-1000XM5", "Bose QuietComfort Ultra")
+
+    st.markdown("---")
     st.caption("Built with LangChain + Groq + Streamlit")
 
 
@@ -270,8 +281,12 @@ with col_btn:
 # ─────────────────────────────────────────────
 if run:
     # Validation
-    if not api_key:
-        st.error("⚠️ Please enter your Anthropic API key in the sidebar.")
+    if not groq_key:
+        st.error("⚠️ Please enter your Groq API key in the sidebar.")
+        st.stop()
+    
+    if not serp_key:
+        st.error("⚠️ Please enter your SerpAPI key in the sidebar.")
         st.stop()
 
     if not product_a or not product_b:
@@ -296,7 +311,7 @@ if run:
         st.markdown(f"<div class='agent-badge badge-collector'>🔵 Collecting: {product_a}</div>", unsafe_allow_html=True)
         with st.spinner(f"Fetching data for {product_a}..."):
             try:
-                data_a = collect_product_data(product_a, api_key)
+                data_a = collect_product_data(product_a, groq_key, serp_key)
                 st.markdown(f"<div class='status-done'>✅ Data collected for {product_a}</div>", unsafe_allow_html=True)
                 with st.expander(f"📋 {product_a} — Raw Profile"):
                     st.markdown(data_a)
@@ -307,7 +322,7 @@ if run:
         st.markdown(f"<div class='agent-badge badge-collector'>🔵 Collecting: {product_b}</div>", unsafe_allow_html=True)
         with st.spinner(f"Fetching data for {product_b}..."):
             try:
-                data_b = collect_product_data(product_b, api_key)
+                data_b = collect_product_data(product_b, groq_key, serp_key)
                 st.markdown(f"<div class='status-done'>✅ Data collected for {product_b}</div>", unsafe_allow_html=True)
                 with st.expander(f"📋 {product_b} — Raw Profile"):
                     st.markdown(data_b)
@@ -322,7 +337,7 @@ if run:
 
         with st.spinner("Generating comparison & recommendation..."):
             try:
-                comparison = make_decision(product_a, data_a, product_b, data_b, api_key)
+                comparison = make_decision(product_a, data_a, product_b, data_b, groq_key)
                 st.markdown(f"<div class='status-done'>✅ Analysis complete!</div>", unsafe_allow_html=True)
 
                 st.markdown("---")
